@@ -1,5 +1,5 @@
 use log::{debug};
-use std::io;
+use std::io::{self,Write};
 
 #[derive(Debug)]
 // assuming single line of code
@@ -13,7 +13,13 @@ struct Token {
     tok_type: TokenType,
     tok_value: String
 }
+    /*
+     GRAMMAR 
 
+	 INSTRUCTION : + - * / =  ,
+	 BLOCK : (( NUMERIC_LITERAL | IDENTIFIER ) INSTRUCTION BLOCK )
+     | ( NUMERIC_LITERAL | IDENTIFIER ) 
+    */
 impl Token {
     pub fn new(tok_type: TokenType ,tok_value: String)->Self{
         Self {
@@ -39,7 +45,7 @@ impl Lexer{
     pub fn new(source: String)->Self{
         Self{
             source: source.clone(), // expected setback
-            ch:source.chars().nth(0).unwrap(),
+            ch:source.chars().nth(0).unwrap_or(' '),
             curr_position: 0,
             read_position: 1,
 
@@ -142,22 +148,38 @@ enum TokenType {
     ILLEGAL,
 }
 
+struct Parser<'a> {
+    tok_stream: Vec<Token>,
+    curr_token: &'a Token,
+}
+
+
+// takes in a token stream and create an ast
+impl Parser{
+    pub fn new(tok_stream: Vec<Token>,)->Self{
+
+    }
+}
+
 
 fn main() {
-    for raw_source in io::stdin().lines(){
+    loop {
+        print!("\r\n>");
+        io::stdout().flush().unwrap();
+        for raw_source in io::stdin().lines(){
+            let source = String::from(raw_source.unwrap_or(String::from("\n")));
 
-        let source = String::from(raw_source.unwrap_or(String::from("\n")));
+            let mut tokens: Vec::<Token> = vec![];
+            let mut lexer = Lexer::new(source);
 
-        let mut tokens: Vec::<Token> = vec![];
-        let mut lexer = Lexer::new(source);
-
-        loop {
-            if let Some(token) = lexer.next(){
-                println!("{:?}",token);
-                tokens.push(token.clone());
-                if token.tok_type == TokenType::EOL {
-                    break;
-                }
+            loop {
+                if let Some(token) = lexer.next(){
+                    println!("{:?}",token);
+                    tokens.push(token.clone());
+                    if token.tok_type == TokenType::EOL {
+                        break;
+                    }
+                } 
             }
         }
     }
