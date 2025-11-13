@@ -1,4 +1,5 @@
 use log::{debug};
+use std::io;
 
 #[derive(Debug)]
 // assuming single line of code
@@ -7,7 +8,7 @@ struct Location {
     // row: u64,
 } 
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 struct Token {
     tok_type: TokenType,
     tok_value: String
@@ -74,44 +75,59 @@ impl Iterator for Lexer {
     fn next(&mut self)-> Option<Self::Item>{
         let token = match self.ch {
             '+'=> {
+                let ch_buf = self.ch;
                 self.read_char();
-                Token::new(TokenType::PLUS_SIGN,self.ch.to_string())
+                Token::new(TokenType::PLUS_SIGN,ch_buf.to_string())
             },
             '-'=> {
+                let ch_buf = self.ch;
                 self.read_char();
-                Token::new(TokenType::PLUS_SIGN,self.ch.to_string())
+                Token::new(TokenType::SUB_SIGN,ch_buf.to_string())
             },
             '*'=> {
+                let ch_buf = self.ch;
                 self.read_char();
-                Token::new(TokenType::PLUS_SIGN,self.ch.to_string())
+                Token::new(TokenType::MUL_SIGN,ch_buf.to_string())
             },
             '/'=> {
+                let ch_buf = self.ch;
                 self.read_char();
-                Token::new(TokenType::PLUS_SIGN,self.ch.to_string())
+                Token::new(TokenType::DIV_SIGN,ch_buf.to_string())
             },
 
             c if c.is_digit(10) => {
-                println!("read_number() called!");
+                debug!("read_number() called!");
                 let number_lit: u64 = self.read_number();
                 Token::new(TokenType::NUM_LIT,number_lit.to_string())
             },
             '\n'=>{ 
+                let ch_buf = self.ch;
                 self.read_char();
-                Token::new(TokenType::EOL,self.ch.to_string())
-            },                  
+                Token::new(TokenType::EOL,ch_buf.to_string())
+            },
+            ' '=>{
+                let ch_buf = self.ch;
+                self.read_char();
+                Token::new(TokenType::WHITESPACE,ch_buf.to_string()) // value gets dunked
+            } // ignore whitespaces
             _ => {
+                let ch_buf = self.ch;
                 self.read_char();
-                Token::new(TokenType::ILLEGAL,self.ch.to_string())
+                Token::new(TokenType::ILLEGAL,ch_buf.to_string())
             }// TODO: add operators
         };
-        return Some(token);
+        if token.tok_type != TokenType::WHITESPACE {
+            return Some(token);
+        }else{
+            return None;
+        }
     }
 }
 
 // 50+50
 //  [NUM_LIT,PLUS_SIGN,NUM_LIT]
 
-#[derive(Debug)]
+#[derive(Debug,PartialEq,Clone)]
 enum TokenType {
     IDENTIFIER,
     NUM_LIT,
@@ -120,6 +136,7 @@ enum TokenType {
     SUB_SIGN,
     MUL_SIGN,
     DIV_SIGN,
+    WHITESPACE, // is ignored, but have to create a token for sanity
     EOL,
     EOF, // TODO EOF parsing for files 
     ILLEGAL,
@@ -127,18 +144,21 @@ enum TokenType {
 
 
 fn main() {
-    let source = String::from("10+10\n");
+    for raw_source in io::stdin().lines(){
 
-    let mut lexer = Lexer::new(source);
-    println!("{:?}",lexer);
-    println!("{:?}",lexer.next());
-    println!("{:?}",lexer);
-    println!("{:?}",lexer.next());
-    println!("{:?}",lexer);
-    println!("{:?}",lexer.next());
-    println!("{:?}",lexer);
-    println!("{:?}",lexer.next());
-    println!("{:?}",lexer);
-    println!("{:?}",lexer.next());
-    println!("{:?}",lexer);
+        let source = String::from(raw_source.unwrap_or(String::from("\n")));
+
+        let mut tokens: Vec::<Token> = vec![];
+        let mut lexer = Lexer::new(source);
+
+        loop {
+            if let Some(token) = lexer.next(){
+                println!("{:?}",token);
+                tokens.push(token.clone());
+                if token.tok_type == TokenType::EOL {
+                    break;
+                }
+            }
+        }
+    }
 } 
