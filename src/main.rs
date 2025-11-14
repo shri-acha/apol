@@ -34,7 +34,7 @@ fn main() {
                 }
             }
             let mut parser = Parser::new(tokens.clone());
-            parser.parse_line();
+            parser.parse_line(); 
         }
     }
 } 
