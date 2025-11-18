@@ -26,7 +26,7 @@ fn main() {
             loop {
                 // looping because of the tokens are generated lazily
                 if let Some(token) = lexer.next(){
-                    println!("{:?}",token);
+                    // println!("{:?}",token);
                     tokens.push(token.clone());
                     if token.tok_type == TokenType::EOL {
                         break;
@@ -34,7 +34,7 @@ fn main() {
                 }
             }
             let mut parser = Parser::new(tokens.clone());
-            parser.parse_line(); 
+            println!("{:?}",parser.parse_line());
         }
     }
 } 

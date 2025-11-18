@@ -19,7 +19,12 @@ pub struct Token {
 	 INSTRUCTION : + - * / =  ,
 	 BLOCK : (( NUMERIC_LITERAL | IDENTIFIER ) INSTRUCTION BLOCK )
      | ( NUMERIC_LITERAL | IDENTIFIER ) 
+
+	 BLOCK : NUMERIC_LITERAL INSTRUCTION ( BLOCK | NUMERIC_LITERAL ) 
+
+     v0: no identifiers and assignment operator
     */ 
+
 // TODO have to work on a precedence for operation.
 
 impl Token {

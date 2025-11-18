@@ -1,4 +1,5 @@
 use crate::token::{Token,TokenType};
+use std::iter::Peekable;
 use std::vec::IntoIter;
 
 
@@ -40,13 +41,13 @@ impl Node {
 
 #[derive(Debug)]
 pub struct Parser {
-    pub tok_stream: IntoIter<Token>,
+    pub tok_stream: Peekable<IntoIter<Token>>,
 }
 
 impl Parser {
-    pub fn new( tok_stream: Vec< Token> )->Self{
+    pub fn new( tok_stream: Vec<Token> )->Self{
         Self{
-            tok_stream: tok_stream.into_iter(),
+            tok_stream: tok_stream.into_iter().peekable(),
         }
     }
     //   +
@@ -59,57 +60,73 @@ impl Parser {
     //
     // TODO implement a simple AST generation 
     
-    pub fn parse_line(&mut self)-> (){
-        let mut curr_token = self.tok_stream.next();
+    pub fn parse_line(&mut self)-> Option<Node>{
+        // take input token and match it with token types
+        if let Some(token) = self.tok_stream.peek() {
+            match token {
+                Token{ tok_type: TokenType::NUM_LIT, ..} =>{
+                    return self.handle_number_parsing();
+                },
+                Token{tok_type: TokenType::PLUS_SIGN, ..} =>{
+                    return self.handle_op_parsing();
+                },
+                _=>{
+                    println!("[BEFORE]{:?}",token);
+                    self.tok_stream.next();
+                    println!("[WAY BEFORE]{:?}",self.tok_stream.peek());
+                    return self.parse_line();
 
-        if let Some(inner_curr_token) = curr_token {
-
-                    if inner_curr_token.tok_type == TokenType::BOL{
-
-                        let AST = Node::new(
-                            inner_curr_token,
-                            Box::new(Tree::new(self.consume_exprs(),self.consume_exprs()))
-                        );
-                        println!("{:?}",AST);
-
-                    }
-        }
-        else {
-        }
-    }
-    pub fn consume_exprs(&mut self)-> Option<Node>{
-        let curr_token = self.tok_stream.next();
-
-        if let Some( inner_curr_token)  = curr_token {
-            if self.match_literals(& inner_curr_token) {
-               return Some(Node::new(inner_curr_token,Box::new(Tree::new(None,None))));
-            }
-            else if self.match_operators(& inner_curr_token) {
-               return Some(Node::new(inner_curr_token,Box::new(Tree::new(self.consume_exprs(),self.consume_exprs()))));
-            }
-            else{
-               return None;
+                }
             }
         }else {
             return None;
         }
     }
+    pub fn handle_number_parsing(&mut self)-> Option<Node> {
 
-    pub fn match_literals(&mut self,curr_token: &Token)->bool{
-        match &curr_token.tok_type {
-            TokenType::NUM_LIT => true,
-            _ => false
+        // saves the first number as a l_child
+        let l_child: Option<Node>; 
+        if let Some(token) = self.tok_stream.peek(){ l_child = Some(Node::new(token.clone(),Box::new(Tree::default())));
+        }else {
+            return None;
+        } 
+
+        // passes to the next token and recursively calls op_parsing 
+        self.tok_stream.next();
+        if let Some(token) = self.tok_stream.peek(){
+            match token{
+                Token{tok_type: TokenType::PLUS_SIGN, .. } =>{
+                    return Some(Node::new(token.clone(),Box::new(Tree::new(l_child,self.handle_op_parsing()))));
+                },
+                _=>{
+                    return None;
+                }
+            }
+        }else {
+                return l_child;
         }
     }
-    pub fn match_operators(&mut self,curr_token:&Token)->bool{
-        match &curr_token.tok_type {
-            TokenType::ASSIGN_SIGN=>true,
-            TokenType::PLUS_SIGN=>true,
-            TokenType::SUB_SIGN=>true,
-            TokenType::MUL_SIGN=>true,
-            TokenType::DIV_SIGN=>true,
-            _=>false,
+
+    pub fn handle_op_parsing(&mut self)->Option<Node>{
+        let l_child:Option<Node>;
+        if let Some(token) = self.tok_stream.peek(){
+            l_child = Some(Node::new(token.clone(),Box::new(Tree::default())));
+        }else {
+            return None;
+        }
+        self.tok_stream.next();
+        if let Some(token) = self.tok_stream.peek(){
+            match token {
+                Token{tok_type: TokenType::NUM_LIT,..} => {
+                    return Some(Node::new(token.clone(),Box::new(Tree::default())));
+                }
+                _=>{
+                    return None;
+                }
+                }
+            }else {
+                return l_child; 
         }
     }
-    
 }
+
