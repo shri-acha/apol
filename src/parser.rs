@@ -82,11 +82,14 @@ impl Parser {
             return None;
         }
     }
+
+    
     pub fn handle_number_parsing(&mut self)-> Option<Node> {
 
         // saves the first number as a l_child
         let l_child: Option<Node>; 
-        if let Some(token) = self.tok_stream.peek(){ l_child = Some(Node::new(token.clone(),Box::new(Tree::default())));
+        if let Some(token) = self.tok_stream.peek(){
+            l_child = Some(Node::new(token.clone(),Box::new(Tree::default())));
         }else {
             return None;
         } 
@@ -99,7 +102,7 @@ impl Parser {
                     return Some(Node::new(token.clone(),Box::new(Tree::new(l_child,self.handle_op_parsing()))));
                 },
                 _=>{
-                    return None;
+                    return l_child;
                 }
             }
         }else {
@@ -108,25 +111,52 @@ impl Parser {
     }
 
     pub fn handle_op_parsing(&mut self)->Option<Node>{
-        let l_child:Option<Node>;
-        if let Some(token) = self.tok_stream.peek(){
-            l_child = Some(Node::new(token.clone(),Box::new(Tree::default())));
-        }else {
-            return None;
-        }
+
+        // 1 + 2 + 3
+        // + { 1, handle_op_parsing() }
+        // + { 1, + {2,3} }
+        // 
+        // 1 + 2
+
+        let l_child: Option<Node>;
         self.tok_stream.next();
+        // if the next token exists
         if let Some(token) = self.tok_stream.peek(){
             match token {
+                // if the token is a number
                 Token{tok_type: TokenType::NUM_LIT,..} => {
-                    return Some(Node::new(token.clone(),Box::new(Tree::default())));
+                    l_child =  Some(Node::new(token.clone(),Box::new(Tree::default())));
                 }
+                // if unsure of the token
                 _=>{
                     return None;
                 }
                 }
-            }else {
-                return l_child; 
+            }
+        // if the next token doesn't exist
+        else {
+                return None; 
+        }
+
+        self.tok_stream.next();
+
+        // if the token(i.e. operator) is present 
+        if let Some(token) = self.tok_stream.peek(){ 
+            match token {
+                Token{tok_type: TokenType::PLUS_SIGN, .. } => {
+                    return Some(
+                        Node::new(token.clone(),
+                            Box::new(
+                                Tree::new(l_child,self.handle_op_parsing()))
+                                )
+                            );
+                },
+                    _=>{ 
+                        return  l_child;
+                    }
+                }
+        }else {
+            return l_child;
         }
     }
 }
-
