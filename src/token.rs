@@ -8,7 +8,7 @@ pub struct Location {
     // row: u64,
 } 
 
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,PartialEq)]
 pub struct Token {
     pub tok_type: TokenType,
     pub tok_value: String

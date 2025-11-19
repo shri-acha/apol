@@ -3,7 +3,7 @@ use std::iter::Peekable;
 use std::vec::IntoIter;
 
 
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub struct Tree{
     pub l_child: Option<Node>,
     pub r_child: Option<Node>,
@@ -24,7 +24,7 @@ impl Tree {
         }
     }
 }
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub struct Node {
     pub value: Token,
     pub branch: Box<Tree>
@@ -98,7 +98,12 @@ impl Parser {
         self.tok_stream.next();
         if let Some(token) = self.tok_stream.peek(){
             match token{
-                Token{tok_type: TokenType::PLUS_SIGN, .. } =>{
+                Token{tok_type: TokenType::PLUS_SIGN, .. }|
+                Token{tok_type: TokenType::SUB_SIGN, .. } |
+                Token{tok_type: TokenType::MUL_SIGN, .. } |
+                Token{tok_type: TokenType::DIV_SIGN, .. } |
+                Token{tok_type: TokenType::ASSIGN_SIGN, .. } 
+                =>{
                     return Some(Node::new(token.clone(),Box::new(Tree::new(l_child,self.handle_op_parsing()))));
                 },
                 _=>{
@@ -143,7 +148,12 @@ impl Parser {
         // if the token(i.e. operator) is present 
         if let Some(token) = self.tok_stream.peek(){ 
             match token {
-                Token{tok_type: TokenType::PLUS_SIGN, .. } => {
+                Token{tok_type: TokenType::PLUS_SIGN, .. }|
+                Token{tok_type: TokenType::SUB_SIGN, .. } |
+                Token{tok_type: TokenType::MUL_SIGN, .. } |
+                Token{tok_type: TokenType::DIV_SIGN, .. } |
+                Token{tok_type: TokenType::ASSIGN_SIGN, .. } 
+                    => {
                     return Some(
                         Node::new(token.clone(),
                             Box::new(

@@ -1,6 +1,7 @@
 mod token;
 mod lexer;
 mod parser;
+mod tree_eval;
 
 use std::io::{self,Write};
 use token::{Token,TokenType};
@@ -34,7 +35,8 @@ fn main() {
                 }
             }
             let mut parser = Parser::new(tokens.clone());
-            println!("{:?}",parser.parse_line());
+            println!("{}",tree_eval::print_tree(parser.parse_line().as_ref()));
+            break;
         }
     }
 } 
