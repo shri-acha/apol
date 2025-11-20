@@ -35,7 +35,7 @@ fn main() {
                 }
             }
             let mut parser = Parser::new(tokens.clone());
-            println!("{}",tree_eval::print_tree(parser.parse_line().as_ref()));
+            println!("{:?}",tree_eval::eval_tree(parser.parse_line().as_ref()));
             break;
         }
     }

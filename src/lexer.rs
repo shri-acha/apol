@@ -33,7 +33,7 @@ impl Lexer{
         return number_lit.parse::<u64>().unwrap();
     } 
 
-    // read reads char through each line till '\n'
+    // reads char through each line till '\n'
     pub fn read_char(&mut self){
         
         if self.read_position >= self.source.len(){
